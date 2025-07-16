@@ -1,0 +1,128 @@
+pipeline {
+    agent {
+        label 'ubuntu-runner'
+    }
+    environment {
+        // Declare as an environment variable
+        PROJECT_NAME = "$PROJECTNAME"
+        SAMBA_DIR = "/mnt/jenkins_build/"
+        ANDROID = "$PROJECT_NAME" + "Android"
+        IOS = "$PROJECT_NAME" + "iOS"
+        LINUX = "$PROJECT_NAME" + "Linux"
+        MAC_OS = "$PROJECT_NAME" + "MacOS"
+        WEB = "$PROJECT_NAME" + "Web"
+        WINDOWS = "$PROJECT_NAME" + "Windows"
+    }
+
+    stages {
+        stage('Build Web') {
+            steps {
+                script {
+                    // Check if the directory exists, if not, create it
+                    sh 'mkdir -p ~/$WEB'
+                }
+                script {
+                    // Running Godot in headless mode to export the Web project
+                    sh 'godot --headless --export-release "Web" ~/$WEB/index.html'
+                }
+                script {
+                    // Copying from agent to samba share
+                    sh 'cp -rfv ~/$WEB/ $SAMBA_DIR'
+                }
+                script {
+                    // zip and export
+                    sh '''
+                    cd ~/$WEB && zip -r $WEB.zip ./*;
+                    cp -rfv ~/$WEB/$WEB.zip $SAMBA_DIR;
+                    cp -rfv ~/$WEB/$WEB.zip $WORKSPACE;
+                    '''
+                }
+                // script {
+                //     // upload via playwright (use docker next time)
+                //     sh '''
+                //     cd $WORKSPACE/playwright;
+                //     npm ci;
+                //     npx playwright install;
+                //     CI=true npx playwright test --workers=1 tests/uploadItch.spec.ts;
+                //     '''
+                // }
+            }
+        }
+        // stage('Build iOS') {
+        //     steps {
+        //         script {
+        //             // Check if the directory exists, if not, create it
+        //             sh 'mkdir -p ~/$IOS'
+        //         }
+        //         script {
+        //             // Running Godot in headless mode to export the iOS project
+        //             sh 'godot --headless --export-release 'iOS' ~/$IOS/$IOS.ipa'
+        //         }
+        //         script {
+        //             // Copying from agent to samba share
+        //             sh 'cp -rfv ~/$IOS/ $SAMBA_DIR'
+        //         }
+        //     }
+        // }
+        // stage('Build Android') {
+        //     steps {
+        //         script {
+        //             sh 'mkdir -p ~/$ANDROID'
+        //         }
+        //         script {
+        //             // Running Godot in headless mode to export the Android project
+        //             sh 'godot --headless --export-release 'Android' ~/$ANDROID/$ANDROID.apk'
+        //         }
+        //         script {
+        //             // Copying from agent to samba share
+        //             sh 'cp -rfv ~/$ANDROID/ $SAMBA_DIR'
+        //         }
+        //     }
+        // }
+        stage('Build Linux') {
+            steps {
+                script {
+                    sh 'mkdir -p ~/$LINUX'
+                }
+                script {
+                    // Running Godot in headless mode to export the Linux project
+                    sh 'godot --headless --export-release 'Linux' ~/$LINUX/$LINUX.x86_64'
+                }
+                script {
+                    // Copying from agent to samba share
+                    sh 'cp -rfv ~/$LINUX/ $SAMBA_DIR'
+                }
+            }
+        }
+        stage('Build MacOS') {
+            steps {
+                script {
+                    sh 'mkdir -p ~/$MAC_OS'
+                }
+                script {
+                    // Running Godot in headless mode to export the MacOS project
+                    sh 'godot --headless --export-release 'macOS' ~/$MAC_OS/$MAC_OS.zip'
+                }
+                script {
+                    // Copying from agent to samba share
+                    sh 'cp -rfv ~/$MAC_OS/ $SAMBA_DIR'
+                }
+            }
+        }
+        stage('Build Windows') {
+            steps {
+                script {
+                    // Create directory if doesnt exist
+                    sh 'mkdir -p ~/$WINDOWS'
+                }
+                script {
+                    // Running Godot in headless mode to export the Windows project
+                    sh 'godot --headless --export-release "Windows Desktop" ~/$WINDOWS/$WINDOWS.exe'
+                }
+                script {
+                    sh 'cp -rfv ~/$WINDOWS/ $SAMBA_DIR'
+                }
+            }
+        }
+    }
+}
