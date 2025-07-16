@@ -5,13 +5,13 @@ pipeline {
     environment {
         // Declare as an environment variable
         PROJECT_NAME = "$PROJECTNAME"
-        SAMBA_DIR = "/mnt/jenkins_build/"
-        ANDROID = "$PROJECT_NAME" + "Android"
-        IOS = "$PROJECT_NAME" + "iOS"
-        LINUX = "$PROJECT_NAME" + "Linux"
-        MAC_OS = "$PROJECT_NAME" + "MacOS"
-        WEB = "$PROJECT_NAME" + "Web"
-        WINDOWS = "$PROJECT_NAME" + "Windows"
+        SAMBA_DIR = '/mnt/jenkins_build/'
+        ANDROID = "$PROJECT_NAME" + 'Android'
+        IOS = "$PROJECT_NAME" + 'iOS'
+        LINUX = "$PROJECT_NAME" + 'Linux'
+        MAC_OS = "$PROJECT_NAME" + 'MacOS'
+        WEB = "$PROJECT_NAME" + 'Web'
+        WINDOWS = "$PROJECT_NAME" + 'Windows'
     }
 
     stages {
@@ -37,15 +37,20 @@ pipeline {
                     cp -rfv ~/$WEB/$WEB.zip $WORKSPACE;
                     '''
                 }
-                // script {
-                //     // upload via playwright (use docker next time)
-                //     sh '''
-                //     cd $WORKSPACE/playwright;
-                //     npm ci;
-                //     npx playwright install;
-                //     CI=true npx playwright test --workers=1 tests/uploadItch.spec.ts;
-                //     '''
-                // }
+            // script {
+            //     // upload via playwright (use docker next time)
+            //     sh '''
+            //     cd $WORKSPACE/playwright;
+            //     npm ci;
+            //     npx playwright install;
+            //     CI=true npx playwright test --workers=1 tests/uploadItch.spec.ts;
+            //     '''
+            // }
+            }
+            post {
+                always {
+                    jiraSendDeploymentInfo environmentId: 'development', environmentName: 'development', environmentType: 'development', serviceIds: ['BAR']
+                }
             }
         }
         // stage('Build iOS') {
@@ -86,11 +91,16 @@ pipeline {
                 }
                 script {
                     // Running Godot in headless mode to export the Linux project
-                    sh 'godot --headless --export-release 'Linux' ~/$LINUX/$LINUX.x86_64'
+                    sh 'godot --headless --export-release "Linux" ~/$LINUX/$LINUX.x86_64'
                 }
                 script {
                     // Copying from agent to samba share
                     sh 'cp -rfv ~/$LINUX/ $SAMBA_DIR'
+                }
+            }
+            post {
+                always {
+                    jiraSendDeploymentInfo environmentId: 'development', environmentName: 'development', environmentType: 'development', serviceIds: ['BAR']
                 }
             }
         }
@@ -101,11 +111,16 @@ pipeline {
                 }
                 script {
                     // Running Godot in headless mode to export the MacOS project
-                    sh 'godot --headless --export-release 'macOS' ~/$MAC_OS/$MAC_OS.zip'
+                    sh 'godot --headless --export-release "macOS" ~/$MAC_OS/$MAC_OS.zip'
                 }
                 script {
                     // Copying from agent to samba share
                     sh 'cp -rfv ~/$MAC_OS/ $SAMBA_DIR'
+                }
+            }
+            post {
+                always {
+                    jiraSendDeploymentInfo environmentId: 'development', environmentName: 'development', environmentType: 'development', serviceIds: ['BAR']
                 }
             }
         }
@@ -121,6 +136,11 @@ pipeline {
                 }
                 script {
                     sh 'cp -rfv ~/$WINDOWS/ $SAMBA_DIR'
+                }
+            }
+            post {
+                always {
+                    jiraSendDeploymentInfo environmentId: 'development', environmentName: 'development', environmentType: 'development', serviceIds: ['BAR']
                 }
             }
         }
