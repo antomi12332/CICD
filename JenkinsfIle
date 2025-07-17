@@ -46,6 +46,10 @@ pipeline {
             //     CI=true npx playwright test --workers=1 tests/uploadItch.spec.ts;
             //     '''
             // }
+				script {
+					// Cleanup
+					sh 'cd ~/${WEB} && rm -rf ${WEB}.zip ~/${WEB};'
+				}
             }
             post {
                 always {
@@ -67,6 +71,10 @@ pipeline {
         //             // Copying from agent to samba share
         //             sh 'cp -rfv ~/$IOS/ $SAMBA_DIR'
         //         }
+		//         script {
+		//             // Cleanup
+		//             sh 'cd ~/${IOS} && rm -rf ${IOS}.ipa ~/${IOS};'
+		//         }
         //     }
         // }
         // stage('Build Android') {
@@ -82,6 +90,10 @@ pipeline {
         //             // Copying from agent to samba share
         //             sh 'cp -rfv ~/$ANDROID/ $SAMBA_DIR'
         //         }
+		//         script {
+		//             // Cleanup
+		//             sh 'cd ~/${ANDROID} && rm -rf ${ANDROID}.apk ~/${ANDROID};'
+		//         }
         //     }
         // }
         stage('Build Linux') {
@@ -97,6 +109,10 @@ pipeline {
                     // Copying from agent to samba share
                     sh 'cp -rfv ~/$LINUX/ $SAMBA_DIR'
                 }
+				script {
+					// Cleanup
+					sh 'cd ~/${LINUX} && rm -rf ${LINUX}.zip ~/${LINUX};'
+				}
             }
             post {
                 always {
@@ -117,6 +133,10 @@ pipeline {
                     // Copying from agent to samba share
                     sh 'cp -rfv ~/$MAC_OS/ $SAMBA_DIR'
                 }
+				script {
+					// Cleanup
+					sh 'cd ~/${MAC_OS} && rm -rf ${MAC_OS}.zip ~/${MAC_OS};'
+				}
             }
             post {
                 always {
@@ -137,6 +157,10 @@ pipeline {
                 script {
                     sh 'cp -rfv ~/$WINDOWS/ $SAMBA_DIR'
                 }
+				script {
+					// Cleanup
+					sh 'cd ~/${WINDOWS} && rm -rf ${WINDOWS}.exe ~/${WINDOWS};'
+				}
             }
             post {
                 always {
