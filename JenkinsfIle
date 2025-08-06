@@ -12,6 +12,7 @@ pipeline {
         MAC_OS = "$PROJECT_NAME" + 'MacOS'
         WEB = "$PROJECT_NAME" + 'Web'
         WINDOWS = "$PROJECT_NAME" + 'Windows'
+        ITCH_CREDENTIALS = credentials('ITCHCREDENTIALS')
     }
 
     stages {
@@ -37,23 +38,29 @@ pipeline {
                     cp -rfv ~/$WEB/$WEB.zip $WORKSPACE;
                     '''
                 }
-            // script {
-            //     // upload via playwright (use docker next time)
-            //     sh '''
-            //     cd $WORKSPACE/playwright;
-            //     npm ci;
-            //     npx playwright install;
-            //     CI=true npx playwright test --workers=1 tests/uploadItch.spec.ts;
-            //     '''
-            // }
-				script {
-					// Cleanup
-					sh 'cd ~/${WEB} && rm -rf ${WEB}.zip ~/${WEB};'
-				}
+            script {
+                // upload via playwright (use docker next time)
+                sh """
+                export ITCHUSERNAME="\$ITCH_CREDENTIALS_USR"
+                export ITCHPASSWORD="\$ITCH_CREDENTIALS_PSW"
+                export PROJECTNAME="${params.PROJECTNAME}"
+                export ITCHURL="${params.ITCHURL}"
+                export WEBBUILD="${params.WEBBUILD}"
+                export LINUXBUILD="${params.LINUXBUILD}"
+                export MACOSBUILD="${params.MACOSBUILD}"
+                export WINDOWSBUILD="${params.WINDOWSBUILD}"
+                
+                cd \$WORKSPACE/Playwright;
+                npm ci;
+                npx playwright install;
+                
+                CI=true npx playwright test --workers=1 tests/uploadItch.spec.ts;
+                """
+            }
             }
             post {
                 always {
-                    jiraSendDeploymentInfo environmentId: 'development', environmentName: 'development', environmentType: 'development', serviceIds: ['BAR']
+                    jiraSendDeploymentInfo environmentId: 'development', environmentName: 'development', environmentType: 'development',  issueKeys: ['BAR']
                 }
             }
         }
@@ -71,10 +78,6 @@ pipeline {
         //             // Copying from agent to samba share
         //             sh 'cp -rfv ~/$IOS/ $SAMBA_DIR'
         //         }
-		//         script {
-		//             // Cleanup
-		//             sh 'cd ~/${IOS} && rm -rf ${IOS}.ipa ~/${IOS};'
-		//         }
         //     }
         // }
         // stage('Build Android') {
@@ -90,10 +93,6 @@ pipeline {
         //             // Copying from agent to samba share
         //             sh 'cp -rfv ~/$ANDROID/ $SAMBA_DIR'
         //         }
-		//         script {
-		//             // Cleanup
-		//             sh 'cd ~/${ANDROID} && rm -rf ${ANDROID}.apk ~/${ANDROID};'
-		//         }
         //     }
         // }
         stage('Build Linux') {
@@ -109,14 +108,10 @@ pipeline {
                     // Copying from agent to samba share
                     sh 'cp -rfv ~/$LINUX/ $SAMBA_DIR'
                 }
-				script {
-					// Cleanup
-					sh 'cd ~/${LINUX} && rm -rf ${LINUX}.zip ~/${LINUX};'
-				}
             }
             post {
                 always {
-                    jiraSendDeploymentInfo environmentId: 'development', environmentName: 'development', environmentType: 'development', serviceIds: ['BAR']
+                    jiraSendDeploymentInfo environmentId: 'development', environmentName: 'development', environmentType: 'development',  issueKeys: ['BAR']
                 }
             }
         }
@@ -133,14 +128,10 @@ pipeline {
                     // Copying from agent to samba share
                     sh 'cp -rfv ~/$MAC_OS/ $SAMBA_DIR'
                 }
-				script {
-					// Cleanup
-					sh 'cd ~/${MAC_OS} && rm -rf ${MAC_OS}.zip ~/${MAC_OS};'
-				}
             }
             post {
                 always {
-                    jiraSendDeploymentInfo environmentId: 'development', environmentName: 'development', environmentType: 'development', serviceIds: ['BAR']
+                    jiraSendDeploymentInfo environmentId: 'development', environmentName: 'development', environmentType: 'development',  issueKeys: ['BAR']
                 }
             }
         }
@@ -157,14 +148,10 @@ pipeline {
                 script {
                     sh 'cp -rfv ~/$WINDOWS/ $SAMBA_DIR'
                 }
-				script {
-					// Cleanup
-					sh 'cd ~/${WINDOWS} && rm -rf ${WINDOWS}.exe ~/${WINDOWS};'
-				}
             }
             post {
                 always {
-                    jiraSendDeploymentInfo environmentId: 'development', environmentName: 'development', environmentType: 'development', serviceIds: ['BAR']
+                    jiraSendDeploymentInfo environmentId: 'development', environmentName: 'development', environmentType: 'development',  issueKeys: ['BAR']
                 }
             }
         }
